@@ -1,53 +1,123 @@
 package AnyEvent::KVStore;
 
-use 5.10;
+use 5.010;
 use strict;
 use warnings FATAL => 'all';
 
 =head1 NAME
 
-AnyEvent::KVStore - The great new AnyEvent::KVStore!
+AnyEvent::KVStore - A pluggable key-value store API for AnyEvent
 
 =head1 VERSION
 
-Version 0.01
+Version 0.1.0
 
 =cut
 
-our $VERSION = '0.01';
+use strict;
+use warnings;
+use Moo;
+use Type::Tiny;
+use Try::Tiny;
+use Types::Standard qw(Str HashRef);
+our $VERSION = '0.1.0';
 
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use AnyEvent::KVStore;
 
-    my $foo = AnyEvent::KVStore->new();
-    ...
+    my $foo = AnyEvent::KVStore->new(type => 'etcd', config => $config);
+    my $val = $foo->read($key);
+    $foo->write($key, $val2);
 
-=head1 EXPORT
+    $foo->watch($keyspace, \&process_vals);
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+=head1 DESCRIPTION
+
+The AnyEventLLKVStore framework intends to be a simple, pluggable API for
+abstracting away the details of key-value store integratoins in event loop for
+the standard operations one is likely to experience in an event loop.
+
+The idea is to make key-value stores reasonably pluggable for variou skinds of
+operations so that when one fails to scale in one scenario, another can be used
+and alaternatively, the same app can support several different stores.
+
+The framework uses Moo (Minimalist Object Orientation) to procide the basic
+interface specifications, and modules providing drivers here are expected to
+use Moo for defining accessors, etc.
+
+=head1 ACCESSORS/PROPERTIES
+
+=head2 module
+
+The name of the driver used.
+
+=cut
+
+my $kvs_module = Type::Tiny->new(
+    name       => 'Module',
+    constraint => sub { $_->does('AnyEvent::KVStore::Driver')},
+    message    => sub { "Not a kvstore driver object: $_"},
+);
+
+has _proxy => ( is => 'lazy', isa => $kvs_module, builder => \&_connect,
+                handles => 'AnyEvent::KVStore::Driver');
+
+sub _connect($){
+    my ($self) = @_;
+    local $@ = undef;
+    my $modname = "AnyEvent::KVStore::" . ucfirst($self->module);
+    eval "require $modname" or die $@;
+    return $modname->new($self->config);
+}
+
+has module => (is => => 'ro', isa => Str, required => 1);
+
+=head2 config
+
+This is the configuratoin to connect to the driver.
+
+=cut
+
+has config => (is => 'ro', isa => HashRef, required => 1);
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
+=head2 new($args or %args)
 
-=cut
+Returns a new kvstore object for use in your application.  Note that the actual
+connection is lazy, and therefore is not even made until use.  This uses
+standard Moo/Moose constructor syntax.
 
-sub function1 {
-}
+=head2 list($prefix)
 
-=head2 function2
+List all keys starting with C<$prefix>
 
-=cut
+Returns a list of strings.
 
-sub function2 {
-}
+=head2 exists($key)
+
+Returns true if the key exists, false if it does not.
+
+=head2 read($key)
+
+Returns the value of the key.
+
+=head2 write($key, $value)
+
+Writes the key to the key value store.
+
+=head2 watch($prefix, $callback)
+
+Watch the keys starting with C<$prefix> and for each such key, execute 
+$callback with the arguments as ($key, $value)
+
+=head1 WRITING YOUR OWN DRIVER
+
+Your driver should consume the L<AnyEvent::KVStore::Driver> role.  It then
+needs to implement the required interfaces.  See the L<AnyEvent::KVStore::Driver>
+documentation for details.
 
 =head1 AUTHOR
 
@@ -60,7 +130,12 @@ the web interface at L<https://rt.cpan.org/NoAuth/ReportBug.html?Queue=AnyEvent-
 automatically be notified of progress on your bug as I make changes.
 
 
+=head1 MODULE VARIATION
 
+A few properties may vary from one module to another.  For example, most
+modules should support multiple watch runs concurrently, though it is possible
+that some might not.  Different modules may require different configuration
+hash keys.
 
 =head1 SUPPORT
 

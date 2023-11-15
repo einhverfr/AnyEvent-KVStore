@@ -1,4 +1,4 @@
-use 5.10;
+use 5.010;
 use strict;
 use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
@@ -9,7 +9,7 @@ my %WriteMakefileArgs = (
     VERSION_FROM     => 'lib/AnyEvent/KVStore.pm',
     ABSTRACT_FROM    => 'lib/AnyEvent/KVStore.pm',
     LICENSE          => 'bsd',
-    MIN_PERL_VERSION => '5.10',
+    MIN_PERL_VERSION => '5.010',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
     },
@@ -17,8 +17,9 @@ my %WriteMakefileArgs = (
         'Test::More' => '0',
     },
     PREREQ_PM => {
-        #'ABC'              => '1.6',
-        #'Foo::Bar::Module' => '5.0401',
+        'Moo'               => 0,
+        'type::Tiny'        => 0,
+        'Types::Standard'   => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'AnyEvent-KVStore-*' },
