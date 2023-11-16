@@ -4,12 +4,12 @@
 
 =head1 VERSION
 
-   0.1.0
+   0.1.2
 
 =cut
 
 package AnyEvent::KVStore::Driver;
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.1';
 use strict;
 use warnings;
 use Moo::Role;

@@ -15,11 +15,11 @@ with 'AnyEvent::KVStore::Driver';
 
 =head1 VERSION
 
-  0.1.0
+  0.1.2
 
 =cut
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.2';
 
 =head1 SYNOPSIS
 

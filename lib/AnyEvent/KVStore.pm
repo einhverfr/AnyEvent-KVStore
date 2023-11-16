@@ -10,7 +10,7 @@ AnyEvent::KVStore - A pluggable key-value store API for AnyEvent
 
 =head1 VERSION
 
-Version 0.1.0
+Version 0.1.2
 
 =cut
 
@@ -20,7 +20,7 @@ use Moo;
 use Type::Tiny;
 use Try::Tiny;
 use Types::Standard qw(Str HashRef);
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.2';
 
 
 =head1 SYNOPSIS
